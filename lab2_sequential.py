@@ -114,9 +114,13 @@ class sequentialFile:
             for record in records:
                 f.write(record.pack())
                 
+        print(f"Archivo principal '{self.main_file}' reconstruido con {len(records)} registros.")
+
         # Limpiar archivo auxiliar
         with open(self.aux_file, 'wb'):
             pass
+
+        print(f"Archivo auxiliar '{self.aux_file}' limpiado.")
 
     def search(self, employee_id):
         for file in [self.main_file, self.aux_file]:
