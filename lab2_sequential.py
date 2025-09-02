@@ -122,7 +122,7 @@ class sequentialFile:
 
         print(f"Archivo auxiliar '{self.aux_file}' limpiado.")
 
-    def search(self, employee_id):
+    def search(self, employee_id): # secuencial
         for file in [self.main_file, self.aux_file]:
             with open(file, 'rb') as f:
                 while (data := f.read(self.record_size)):
@@ -130,6 +130,24 @@ class sequentialFile:
                     if record.Employee_ID == employee_id and record.Employee_ID != -1:
                         return record
         return None
+    
+    def binary_search(self, employee_id):
+        with open(self.main_file, 'rb') as f:
+            low = 0
+            high = os.path.getsize(self.main_file) // self.record_size - 1
+            while low <= high:
+                mid = (low + high) // 2
+                f.seek(mid * self.record_size)
+                data = f.read(self.record_size)
+                record = Record.unpack(data)
+                if record.Employee_ID == employee_id and record.Employee_ID != -1:
+                    return record
+                elif record.Employee_ID < employee_id:
+                    low = mid + 1
+                else:
+                    high = mid - 1
+        return None
+    
     def remove(self, employee_id):
         found = False
         for file in [self.main_file, self.aux_file]:
@@ -196,6 +214,11 @@ def main():
     search_ids = random.sample(all_ids, min(10, len(all_ids)))
     _, search_time = time_execution(lambda: [sf.search(eid) for eid in search_ids])
     print(f"Búsquedas completadas en {search_time:.6f} segundos.")
+
+    print("\nRealizando búsquedas binarias...")
+    search_ids = random.sample(all_ids, min(10, len(all_ids)))
+    _, binary_time = time_execution(lambda: [sf.binary_search(eid) for eid in search_ids])
+    print(f"Búsquedas binarias completadas en {binary_time:.6f} segundos.")
 
     range_pairs = [(min(a, b) , max(a, b)) for a, b in zip(random.choices(all_ids, k=5), random.choices(all_ids, k=5))]
 
