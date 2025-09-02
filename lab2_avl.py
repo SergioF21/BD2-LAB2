@@ -153,21 +153,21 @@ class AVLFile:
         balance = self.get_balance(node)
         # caso izquierda-izquierda
         if balance > 1 and self.get_balance(node.left) >= 0:
-            print("Rebalanceo: izquierda-izquierda")
+            #print("Rebalanceo: izquierda-izquierda")
             return self.rotate_right(node)
         # caso derecha-derecha
         if balance < -1 and self.get_balance(node.right) <= 0:
-            print("Rebalanceo: derecha-derecha")
+            #print("Rebalanceo: derecha-derecha")
             return self.rotate_left(node)
         # caso izquierda-derecha
         if balance > 1 and self.get_balance(node.left) < 0:
             node.left = self.rotate_left(node.left)
-            print("Rebalanceo: izquierda-derecha")
+            #print("Rebalanceo: izquierda-derecha")
             return self.rotate_right(node)
         # caso derecha-izquierda
         if balance < -1 and self.get_balance(node.right) > 0:
             node.right = self.rotate_right(node.right)
-            print("Rebalanceo: derecha-izquierda")
+            #print("Rebalanceo: derecha-izquierda")
             return self.rotate_left(node)
         return node
 
@@ -226,7 +226,7 @@ def main():
     all_ids = []
 
     print("Cargando datos desde employee.csv usando AVL Tree...")
-    print("Solo probando INSERT y SEARCH (funciones simplificadas)")
+    print("Solo probando INSERT y SEARCH (con rotaciones)")
 
     def insertar_datos():
         with open('employee.csv', 'r', encoding='utf-8') as csvfile:
@@ -271,6 +271,44 @@ def main():
 
     _, search_time = time_execution(lambda: [avl.search(eid) for eid in search_ids])
     print(f"Búsquedas completadas en {search_time:.6f} segundos.")
+
+    print("\nRealizando búsquedas por rango en AVL Tree...")
+    range_pairs = [(min(a, b) , max(a, b)) for a,
+                     b in zip(random.choices(all_ids, k=3), random.choices(all_ids, k=3))]
+    print(f"Buscando rangos: {range_pairs}")
+    def range_search(start, end):
+        results = []
+        def inorder(node):
+            if node:
+                inorder(node.left)
+                if start <= node.employee_id <= end:
+                    record = avl.read_record_from_file(node.record_pos)
+                    if record:
+                        results.append(record)
+                inorder(node.right)
+        inorder(avl.root)
+        results.sort(key=lambda r: r.Employee_ID)
+        return results
+    for start, end in range_pairs:
+        results = range_search(start, end)
+        print(f"Rango {start}-{end}: {len(results)} registros encontrados.")
+    _, range_time = time_execution(lambda: [range_search(start, end) for start, end in range_pairs])
+    print(f"Búsquedas por rango completadas en {range_time:.6f} segundos.")
+
+    print("\nRealizando eliminaciones en AVL Tree...")
+    delete_ids = random.sample(all_ids, min(5, len(all_ids)))
+    print(f"Eliminando IDs: {delete_ids}")
+    for eid in delete_ids:
+        avl.delete(eid)
+        result = avl.search(eid)
+        if not result:
+            print(f"✓ ID {eid} eliminado correctamente.")
+        else:
+            print(f"✗ Error al eliminar ID {eid}.")
+    _, delete_time = time_execution(lambda: [avl.delete(eid) for eid in delete_ids])
+    print(f"Eliminaciones completadas en {delete_time:.6f} segundos.")
+
+
 
 if __name__ == "__main__":
     main()
