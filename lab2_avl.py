@@ -221,6 +221,23 @@ class AVLFile:
             return node
         return self.get_min_value_node(node.left)
 
+    def range_search(self, start_id, end_id):
+        results = []
+        def inorder(node):
+            if not node:
+                return
+            if node.employee_id > start_id:
+                inorder(node.left)
+            if start_id <= node.employee_id <= end_id:
+                rec = self.read_record_from_file(node.record_pos)
+                if rec:
+                    results.append(rec)
+            if node.employee_id < end_id:
+                inorder(node.right)
+        inorder(self.root)
+        results.sort(key=lambda r: r.Employee_ID)
+        return results
+
 def main():
     avl = AVLFile()
     all_ids = []
@@ -276,23 +293,11 @@ def main():
     range_pairs = [(min(a, b) , max(a, b)) for a,
                      b in zip(random.choices(all_ids, k=3), random.choices(all_ids, k=3))]
     print(f"Buscando rangos: {range_pairs}")
-    def range_search(start, end):
-        results = []
-        def inorder(node):
-            if node:
-                inorder(node.left)
-                if start <= node.employee_id <= end:
-                    record = avl.read_record_from_file(node.record_pos)
-                    if record:
-                        results.append(record)
-                inorder(node.right)
-        inorder(avl.root)
-        results.sort(key=lambda r: r.Employee_ID)
-        return results
+
     for start, end in range_pairs:
-        results = range_search(start, end)
+        results = avl.range_search(start, end)
         print(f"Rango {start}-{end}: {len(results)} registros encontrados.")
-    _, range_time = time_execution(lambda: [range_search(start, end) for start, end in range_pairs])
+    _, range_time = time_execution(lambda: [avl.range_search(start, end) for start, end in range_pairs])
     print(f"Búsquedas por rango completadas en {range_time:.6f} segundos.")
 
     print("\nRealizando eliminaciones en AVL Tree...")
